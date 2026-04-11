@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}
+"Страница регистрации"
+{% endblock %}
+
+{% block content %}
+    <h1>Регистрация</h1>
+
+    <form method="post" enctype="multipart/form-data" class="form-control d-flex flex-column gap-2">
+        {{form.csrf_token}}
+        {{form.name(class="form-control", placeholder="ФИО")}}
+        {{form.login(class="form-control", placeholder="Логин")}}
+
+        {% if form.login.errors %}
+        <div class="ivalid-feedback">
+            {% for error in form.login.errors %}
+            <span> {{ error }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {{form.password(class="form-control", placeholder="Пароль")}}
+        {{form.confirm_password(class="form-control", placeholder="Повторите пароль")}}
+        {{form.submit(class="btn btn-success")}}
+    </form>
+
+{% endblock %}
