@@ -8,70 +8,78 @@ from sqlalchemy import text
 
 post = Blueprint('post', __name__)
 
-@post.route('/posts', methods=['POST', 'GET'])
-def posts():
+@post.post('/posts')
+def get_posts_by_author():
     form = AuthorForm()
     form.author.choices = [a.name for a in User.query.all()]
-
-    if(request.method == 'POST'):
-        author = request.form.get('author')
-        author_id = User.query.filter_by(name=author).first().id
-        posts = Post.query.filter_by(user_id=author_id).all()
-    else:
-        posts = Post.query.all()
+    author = request.form.get('author')
+    author_id = User.query.filter_by(name=author).first().id
+    posts = Post.query.filter_by(user_id=author_id).all()
     return render_template('post/posts.html', posts=posts, form=form)
 
+@post.get('/posts')
+def get_all_posts():
+    form = AuthorForm()
+    form.author.choices = [a.name for a in User.query.all()]
+    posts = Post.query.all()
+    return render_template('post/posts.html', posts=posts, form=form)
 
-@post.route('/post/<int:id>/update', methods=['POST', 'GET'])
+@post.get('/post/<int:id>/update')
 @login_required
-def update(id):
+def get_update(id):
     post = Post.query.get(id)
     if current_user.id == post.author.id:
-        if request.method == 'POST':
-            sql = text("UPDATE post SET title = :title,text  = :text WHERE id = :post_id")
-            title = request.form['title']
-            post_text = request.form['text']
-            try:
-                db.session.execute(sql, {'title': title, 'text': post_text, 'post_id': post.id})
-                db.session.commit()
-                return redirect('/')
-            except Exception as e:
-                print(str(e))
-                return str(e)
-        else:
-            return render_template('post/edit.html', post=post)
+        return render_template('post/edit.html', post=post)
     else:
         abort(403)
 
+@post.post('/post/<int:id>/update')
+@login_required
+def update(id):
+    sql = text("UPDATE post SET title = :title,text  = :text WHERE id = :post_id and user_id = :current_user_id")
+    title = request.form['title']
+    post_text = request.form['text']
+    try:
+        res = db.session.execute(sql, {'title': title, 'text': post_text, 'post_id': id, 'current_user_id': current_user.id})
+        if res.rowcount == 0:
+            print("Не изменен пост")
+            flash(f"Ошибка изменения.", "danger")
+        else:
+            db.session.commit()
+            return redirect('/')
+    except Exception as e:
+        print(str(e))
+        flash(f"Ошибка изменения.", "danger")
 
 @post.route('/post/<int:id>/delete', methods=['POST', 'GET'])
 @login_required
 def delete(id):
-    post = Post.query.get(id)
-    if current_user.id == post.author.id:
-        try:
-            db.session.delete(post)
-            db.session.commit()
-            return redirect('/')
-        except Exception as e:
-            print(str(e))
-            return str(e)
-    else:
-        abort(403)
+    sql = text("DELETE FROM post WHERE id = :post_id and user_id = :current_user_id")
+    try:
+        res = db.session.execute(sql, {'post_id': id, 'current_user_id': current_user.id})
+        db.session.commit()
+        if res.rowcount == 0:
+            print("Не удален пост")
+            flash(f"Ошибка удаления.", "danger")
+        return redirect('/')
+    except Exception as e:
+        print(str(e))
+        flash(f"Ошибка удаления.", "danger")
 
+@post.get('/create')
+@login_required
+def get_create():
+    return render_template('post/create.html')
 
-@post.route('/create', methods=['POST', 'GET'])
+@post.post('/create')
 @login_required
 def create():
-    if request.method == 'POST':
-        title = request.form['title']
-        text = request.form['text']
-        post = Post(user_id=current_user.id, title=title, text=text)
-        try:
-            db.session.add(post)
-            db.session.commit()
-            return redirect('/')
-        except Exception as e:
-            return "Problem with write in DB" + str(e)
-    else:
-        return render_template('post/create.html')
+    title = request.form['title']
+    text = request.form['text']
+    post = Post(user_id=current_user.id, title=title, text=text)
+    try:
+        db.session.add(post)
+        db.session.commit()
+        return redirect('/')
+    except Exception as e:
+        return "Problem with write in DB" + str(e)

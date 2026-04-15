@@ -38,7 +38,7 @@
 
                 {% if current_user.is_authenticated and current_user.id == post.author.id %}
                     <div class="post-stats">
-                        <a href="{{url_for('post.update', id = post.id)}}" class="btn btn-sm btn-secondary">Edit<span class="fa fa-edit"></span></a>
+                        <a href="{{url_for('post.get_update', id = post.id)}}" class="btn btn-sm btn-secondary">Edit<span class="fa fa-edit"></span></a>
                         <a href="{{url_for('post.delete', id = post.id)}}" class="btn btn-sm btn-danger">Delete<span class="fa fa-trash"></span></a>
                     </div>
                 {% endif %}
@@ -50,7 +50,7 @@
             <div class="empty-icon">📝</div>
             <h3>Пока нет постов</h3>
             <p>Будь первым, кто добавит пост в блог!</p>
-            <a href="{{url_for('post.create')}}" class="btn-primary">Создать первый пост</a>
+            <a href="{{url_for('post.get_create')}}" class="btn-primary">Создать первый пост</a>
         </div>
     {% endfor %}
 </div>

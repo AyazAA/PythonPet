@@ -16,18 +16,21 @@ login_manager.login_message = 'Войдите сначала, потом буд�
 @user.route('/user/register', methods=['POST', 'GET'])
 def register():
     form = RegistrationForm()
+    userCreatedBefore = User.query.filter_by(login=form.login.data).first()
     if form.validate_on_submit():
-        hashed_password = Bcrypt().generate_password_hash(password=form.password.data).decode('utf-8')
-        user = User(name=form.name.data, login=form.login.data, password=hashed_password)
-        try:
-            db.session.add(user)
-            db.session.commit()
-            flash(f"Поздравляем, {form.name.data}! Успешно зарегистрированы", "success")
-            return redirect('/')
-        except Exception as e:
-            print(str(e))
-    else:
-        print('Ошибка регистрации')
+        if userCreatedBefore == None:
+            hashed_password = Bcrypt().generate_password_hash(password=form.password.data).decode('utf-8')
+            user = User(name=form.name.data, login=form.login.data, password=hashed_password)
+            try:
+                db.session.add(user)
+                db.session.commit()
+                flash(f"Поздравляем, {form.name.data}! Успешно зарегистрированы", "success")
+                return redirect('/')
+            except Exception as e:
+                print(str(e))
+                flash(f"Ошибка регистрации. Проверьте логин и пароль", "danger")
+        else:
+            flash(f"Ошибка регистрации. Пользователь с таким логином уже существует", "danger")
     return render_template('user/register.html', form=form)
 
 @user.route('/user/login', methods=['POST', 'GET'])

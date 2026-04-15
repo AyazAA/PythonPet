@@ -19,10 +19,3 @@ class LoginForm(FlaskForm):
 
 class AuthorForm(FlaskForm):
     author = SelectField('author', choices=[], render_kw={"class": "form-control"})
-
-#Почему то не работает валидация
-#    def validate_login(self, login):
-#        from app import User
-#        user = User.query.filter_by(name=login.data).first()
-#        if user:
-#            raise ValidationError('Данное имя уже занято.')
