@@ -82,4 +82,5 @@ def create():
         db.session.commit()
         return redirect('/')
     except Exception as e:
-        return "Problem with write in DB" + str(e)
+        flash(f"Ошибка создания.", "danger")
+        print("Problem with write in DB" + str(e))

@@ -13,11 +13,16 @@ login_manager = LoginManager()
 login_manager.login_view = 'user.login'
 login_manager.login_message = 'Войдите сначала, потом будет доступ к странице'
 
-@user.route('/user/register', methods=['POST', 'GET'])
+@user.get('/user/register')
+def get_register():
+    form = RegistrationForm()
+    return render_template('user/register.html', form=form)
+
+@user.post('/user/register')
 def register():
     form = RegistrationForm()
-    userCreatedBefore = User.query.filter_by(login=form.login.data).first()
     if form.validate_on_submit():
+        userCreatedBefore = User.query.filter_by(login=form.login.data).first()
         if userCreatedBefore == None:
             hashed_password = Bcrypt().generate_password_hash(password=form.password.data).decode('utf-8')
             user = User(name=form.name.data, login=form.login.data, password=hashed_password)
@@ -33,7 +38,12 @@ def register():
             flash(f"Ошибка регистрации. Пользователь с таким логином уже существует", "danger")
     return render_template('user/register.html', form=form)
 
-@user.route('/user/login', methods=['POST', 'GET'])
+@user.get('/user/login')
+def get_login():
+    form = LoginForm()
+    return render_template('user/login.html', form=form)
+
+@user.post('/user/login')
 def login():
     form = LoginForm()
     if form.validate_on_submit():
