@@ -12,17 +12,30 @@ post = Blueprint('post', __name__)
 def get_posts_by_author():
     form = AuthorForm()
     form.author.choices = [a.name for a in User.query.all()]
-    author = request.form.get('author')
-    author_id = User.query.filter_by(name=author).first().id
-    posts = Post.query.filter_by(user_id=author_id).all()
-    return render_template('post/posts.html', posts=posts, form=form)
+    author_name = request.form.get('author')
+
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 5, type=int)
+
+    author = User.query.filter_by(name=author_name).first()
+    if author is None:
+        flash(f"Такого автора нет.", "danger")
+
+    pagination = Post.query.filter_by(user_id=author.id).order_by(Post.id.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    posts = pagination.items
+    return render_template('post/posts.html', posts=posts, pagination=pagination, form=form)
 
 @post.get('/posts')
 def get_all_posts():
     form = AuthorForm()
     form.author.choices = [a.name for a in User.query.all()]
-    posts = Post.query.all()
-    return render_template('post/posts.html', posts=posts, form=form)
+
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 5, type=int)
+
+    pagination = Post.query.order_by(Post.id.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    posts = pagination.items
+    return render_template('post/posts.html', posts=posts, pagination=pagination, form=form)
 
 @post.get('/post/<int:id>/update')
 @login_required

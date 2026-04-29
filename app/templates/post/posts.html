@@ -55,6 +55,111 @@
     {% endfor %}
 </div>
 
+<!-- ========== ПАГИНАЦИЯ ========== -->
+{% if pagination and pagination.total > 0 %}
+<div class="pagination-container mt-4">
+    <!-- Информация о количестве постов -->
+    <div class="pagination-info text-center mb-3">
+        <small class="text-muted">
+            Показано {{ posts|length }} из {{ pagination.total }} постов
+            (страница {{ pagination.page }} из {{ pagination.pages }})
+        </small>
+    </div>
+
+    <!-- Пагинация -->
+    <nav aria-label="Навигация по страницам">
+        <ul class="pagination justify-content-center">
+            <!-- Первая страница -->
+            {% if pagination.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for(request.endpoint, page=1, per_page=pagination.per_page) }}">
+                        ««
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">««</span>
+                </li>
+            {% endif %}
+
+            <!-- Предыдущая -->
+            {% if pagination.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for(request.endpoint, page=pagination.prev_num, per_page=pagination.per_page) }}">
+                        « Назад
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">« Назад</span>
+                </li>
+            {% endif %}
+
+            <!-- Номера страниц -->
+            {% set start = [1, pagination.page - 2]|max %}
+            {% set end = [pagination.pages, pagination.page + 2]|min %}
+
+            {% for page_num in range(start, end + 1) %}
+                {% if page_num == pagination.page %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_num }}</span>
+                    </li>
+                {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for(request.endpoint, page=page_num, per_page=pagination.per_page) }}">
+                            {{ page_num }}
+                        </a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            <!-- Следующая -->
+            {% if pagination.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for(request.endpoint, page=pagination.next_num, per_page=pagination.per_page) }}">
+                        Вперед »
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Вперед »</span>
+                </li>
+            {% endif %}
+
+            <!-- Последняя страница -->
+            {% if pagination.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for(request.endpoint, page=pagination.pages, per_page=pagination.per_page) }}">
+                        »»
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">»»</span>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <!-- Выбор количества постов на страницу -->
+    <div class="per-page-selector text-center mt-3">
+        <div class="btn-group btn-group-sm" role="group">
+            <span class="btn btn-secondary disabled">Постов на страницу:</span>
+            {% for per_page_option in [5, 10, 20, 50] %}
+                {% if per_page_option == pagination.per_page %}
+                    <span class="btn btn-primary active">{{ per_page_option }}</span>
+                {% else %}
+                    <a href="{{ url_for(request.endpoint, page=1, per_page=per_page_option) }}"
+                       class="btn btn-outline-primary">
+                        {{ per_page_option }}
+                    </a>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
 {% endblock %}
 
 
